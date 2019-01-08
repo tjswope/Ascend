@@ -7,17 +7,82 @@
 //
 
 import UIKit
+import FirebaseAuth
 
-class LaunchScreenViewController: UIViewController {
+class LaunchScreenViewController: UIViewController, UITextFieldDelegate {
     
     var inputContainerConstraint : NSLayoutConstraint?
     let logo = UIImageView()
     let mountain = UIImageView()
-    //let emailTextField = UITextField()
+    
+    let inputsContainerView: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor.white
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.cornerRadius = 5
+        view.layer.masksToBounds = true
+        
+        return view
+    }()
+    
+    let signinRegisterButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setUpButton()
+        button.setTitle("Sign In", for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(signIn), for: .touchUpInside)
+        button.isEnabled = false
+        return button
+    }()
+    
+    let loginRegisterButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setUpButton()
+        button.setTitle("Register", for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.isEnabled = false
+        button.addTarget(self, action: #selector(register), for: .touchUpInside)
+        return button
+    }()
+    
+    let emailTextField: UITextField = {
+        let tf = UITextField()
+        tf.placeholder = "Email"
+        tf.translatesAutoresizingMaskIntoConstraints = false
+        tf.keyboardType = .emailAddress
+        tf.spellCheckingType = .no
+        tf.autocorrectionType = .no
+        tf.autocapitalizationType = .none
+        return tf
+    }()
+    
+    let emailSeparatorView: UIView = {
+        let view = UIView()
+        view.backgroundColor = Colors.grey.value
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    let passwordTextField: UITextField = {
+        let tf = UITextField()
+        tf.placeholder = "Password"
+        tf.translatesAutoresizingMaskIntoConstraints = false
+        tf.spellCheckingType = .no
+        tf.autocorrectionType = .no
+        tf.autocapitalizationType = .none
+        tf.isSecureTextEntry = true
+        return tf
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.setBackGroundColor()
+
+        if let _ = Auth.auth().currentUser{
+            print("viewdidload")
+            self.performSegue(withIdentifier: "signOutSegue", sender: nil)
+        }
+        
         view.addSubview(inputsContainerView)
         view.addSubview(loginRegisterButton)
         view.addSubview(signinRegisterButton)
@@ -30,6 +95,63 @@ class LaunchScreenViewController: UIViewController {
        
         setUpLogo()
         animateLogo(){}//{animateInputView(){}}
+        emailTextField.delegate = self
+        passwordTextField.delegate = self
+        emailTextField.becomeFirstResponder()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        emailTextField.text = ""
+        passwordTextField.text = ""
+        if let _ = Auth.auth().currentUser{
+            print("signed in")
+             self.performSegue(withIdentifier: "signOutSegue", sender: nil)
+        }
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        
+        if emailTextField.isFirstResponder {
+            passwordTextField.becomeFirstResponder()
+        }
+        else{
+            passwordTextField.resignFirstResponder()
+            signinRegisterButton.isEnabled = true
+            loginRegisterButton.isEnabled = true
+        }
+        
+        return true
+    }
+    
+    @objc func signIn(){
+        guard let email = emailTextField.text else {return}
+        guard let password = passwordTextField.text else {return}
+        
+        Auth.auth().signIn(withEmail: email, password: password) { (user, error) in
+            
+            if error == nil && user != nil{
+                self.performSegue(withIdentifier: "signOutSegue", sender: nil)
+            }
+            else{
+                print(error!.localizedDescription)
+            }
+        }
+    }
+    
+    @objc func register(){
+        guard let email = emailTextField.text else {return}
+        guard let password = passwordTextField.text else {return}
+        
+        Auth.auth().createUser(withEmail: email, password: password) { (user, error) in
+            if user != nil, error == nil{
+                self.performSegue(withIdentifier: "signOutSegue", sender: nil)
+            }
+            else{
+                print(error.debugDescription)
+            }
+        }
     }
     
     func animateLogo(_ completion: () -> ()){
@@ -76,56 +198,7 @@ class LaunchScreenViewController: UIViewController {
         view.layoutIfNeeded()
     }
     
-    let inputsContainerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor.white
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.cornerRadius = 5
-        view.layer.masksToBounds = true
-        print("container view")
-        
-        return view
-    }()
-    
-    let signinRegisterButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setUpButton()
-        button.setTitle("Sign In", for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        
-        return button
-    }()
-    
-    let loginRegisterButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setUpButton()
-        button.setTitle("Register", for: .normal)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        
-        return button
-    }()
-    
-    let emailTextField: UITextField = {
-        let tf = UITextField()
-        tf.placeholder = "Email"
-        tf.translatesAutoresizingMaskIntoConstraints = false
-        return tf
-    }()
-    
-    let emailSeparatorView: UIView = {
-        let view = UIView()
-        view.backgroundColor = Colors.grey.value
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    let passwordTextField: UITextField = {
-        let tf = UITextField()
-        tf.placeholder = "Password"
-        tf.translatesAutoresizingMaskIntoConstraints = false
-        tf.isSecureTextEntry = true
-        return tf
-    }()
+
     
     func setupInputsContainerView() {
         //need x, y, width, height constraints
