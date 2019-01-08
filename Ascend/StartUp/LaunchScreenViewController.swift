@@ -10,8 +10,6 @@ import UIKit
 
 class LaunchScreenViewController: UIViewController {
     
-    let clouds = [UIImageView(), UIImageView(), UIImageView(), UIImageView()]
-    var cloudConstraints = [NSLayoutConstraint?]()
     var inputContainerConstraint : NSLayoutConstraint?
     let logo = UIImageView()
     let mountain = UIImageView()
@@ -20,7 +18,6 @@ class LaunchScreenViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.setBackGroundColor()
-        
         view.addSubview(inputsContainerView)
         view.addSubview(loginRegisterButton)
         view.addSubview(signinRegisterButton)
@@ -30,27 +27,24 @@ class LaunchScreenViewController: UIViewController {
         setupLoginRegisterButton()
         
         setUpMoutain()
-//        setUpClouds()
+       
         setUpLogo()
-        animateLogo(){}//self.animateClouds()}
+        animateLogo(){}//{animateInputView(){}}
     }
     
     func animateLogo(_ completion: () -> ()){
-        UIView.animate(withDuration: 4, animations: {
+        UIView.animate(withDuration: 1, animations: {
             self.logo.alpha = 0
-        })
+        },completion:{ complete in self.animateInputView()})
         completion()
     }
     
-//    func animateClouds(){
-//        for constraint in cloudConstraints{
-//            constraint?.constant *= 20
-//        }
-//
-//        UIView.animate(withDuration: 8.0, animations: {
-//            self.view.layoutIfNeeded()
-//        })
-//    }
+    func animateInputView(){
+        inputContainerConstraint?.constant = 100
+        UIView.animate(withDuration: 1, animations: {
+            self.view.layoutIfNeeded()
+        })
+    }
     
     func setUpLogo(){
         logo.image = #imageLiteral(resourceName: "green")
@@ -64,36 +58,6 @@ class LaunchScreenViewController: UIViewController {
         
         view.layoutIfNeeded()
     }
-    
-    func setUpClouds(){
-
-        for imageView in clouds{
-            view.addSubview(imageView)
-            
-            imageView.image = #imageLiteral(resourceName: "cloud")
-            let ratio = #imageLiteral(resourceName: "cloud").size.width/#imageLiteral(resourceName: "cloud").size.height
-            imageView.frame.size = CGSize(width: 5, height: 5*ratio)
-            
-            imageView.translatesAutoresizingMaskIntoConstraints = false
-        }
-        
-        clouds[0].centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -200).isActive = true
-        clouds[1].centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -100).isActive = true
-        clouds[2].centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 100).isActive = true
-        clouds[3].centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 200).isActive = true
-        
-        cloudConstraints.append(clouds[0].centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: -50))
-        cloudConstraints.append(clouds[1].centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: 50))
-        cloudConstraints.append(clouds[2].centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: -50))
-        cloudConstraints.append(clouds[3].centerXAnchor.constraint(equalTo: view.centerXAnchor, constant: 50))
-        
-        for constraint in cloudConstraints{
-            constraint?.isActive = true
-        }
-    
-        view.layoutIfNeeded()
-    }
-    
     
     func setUpMoutain(){
         mountain.image = #imageLiteral(resourceName: "mountains")
@@ -118,6 +82,8 @@ class LaunchScreenViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.cornerRadius = 5
         view.layer.masksToBounds = true
+        print("container view")
+        
         return view
     }()
     
@@ -163,16 +129,17 @@ class LaunchScreenViewController: UIViewController {
     
     func setupInputsContainerView() {
         //need x, y, width, height constraints
-        inputContainerConstraint = inputsContainerView.topAnchor.constraint(equalTo: view.topAnchor, constant: view.frame.height + 100)
-        inputContainerConstraint?.isActive = true
+
         inputsContainerView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
-        //inputsContainerView.topAnchor.constraint(equalTo: view.topAnchor, constant: 100).isActive = true
+        inputContainerConstraint = inputsContainerView.topAnchor.constraint(equalTo: view.topAnchor, constant: -400 )
+        inputContainerConstraint?.isActive = true
         inputsContainerView.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -24).isActive = true
         inputsContainerView.heightAnchor.constraint(equalToConstant: 100).isActive = true
         
         inputsContainerView.addSubview(emailTextField)
         inputsContainerView.addSubview(emailSeparatorView)
         inputsContainerView.addSubview(passwordTextField)
+        
         
         //need x, y, width, height constraints
         emailTextField.leftAnchor.constraint(equalTo: inputsContainerView.leftAnchor, constant: 12).isActive = true
